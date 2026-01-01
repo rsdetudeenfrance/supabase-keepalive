@@ -1,0 +1,68 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Tous les 3 jours à 10h00 UTC (12h00 Paris)
+    - cron: '35 13 */1 * *'
+  
+  # Permet aussi de lancer manuellement
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Appeler l'endpoint Bubble
+        run: |
+          curl -X POST "https://https://rsdcampusfrance.bubbleapps.io/version-test/api/1.1/wf/keepalive"
+      
+      - name: Requête directe Supabase (backup)
+        run: |
+          curl -X GET "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/comments?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+```
+
+### **3.3 Remplacez :**
+- `votre-app.bubbleapps.io` → URL réelle de votre app Bubble
+- `votre-projet.supabase.co` → URL de votre projet Supabase
+- `votre-table` → Nom d'une table existante dans Supabase
+
+---
+
+## **Étape 4 : Ajouter vos secrets (sécurisé)**
+
+### **4.1 Allez dans Settings → Secrets and variables → Actions**
+
+### **4.2 Créez un nouveau secret :**
+```
+Name: SUPABASE_KEY
+Value: sb_publishable_VubCJ5vYVB4eE64FpmUNeg_wjXMIRse
+```
+
+Pour trouver votre clé :
+```
+Supabase Dashboard → Settings → API → Project API keys → anon public
+```
+
+---
+
+## **Étape 5 : Tester le workflow**
+
+### **5.1 Lancez manuellement le workflow :**
+```
+Actions → Keep Supabase Active → Run workflow → Run workflow
+```
+
+### **5.2 Vérifiez que ça fonctionne :**
+```
+1. Attendez 10-20 secondes
+2. Cliquez sur le job qui vient de se lancer
+3. Regardez les logs pour voir si la requête a réussi
+```
+
+Vous devriez voir :
+```
+✓ Appeler l'endpoint Bubble
+✓ Requête directe Supabase (backup)
