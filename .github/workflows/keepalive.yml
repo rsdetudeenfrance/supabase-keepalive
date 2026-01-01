@@ -3,7 +3,7 @@ name: Keep Supabase Active
 on:
   schedule:
     # Tous les 3 jours à 10h00 UTC (12h00 Paris)
-    - cron: '36 14 */1 * *'
+    - cron: '48 14 */3 * *'
   
   # Permet aussi de lancer manuellement
   workflow_dispatch:
