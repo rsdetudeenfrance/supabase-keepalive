@@ -2,25 +2,28 @@ name: Keep Supabase Active
 
 on:
   schedule:
+    # Tous les 3 jours à 23h00 UTC
     - cron: '0 23 */3 * *'
+  
+  # Permet aussi de lancer manuellement
   workflow_dispatch:
 
 jobs:
   ping-supabase:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Ping Supabase avec écriture
+      - name: Ping Supabase (UPSERT)
         run: |
-          curl -X POST "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/heartbeat" \
+          curl -X PATCH "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/heartbeat?id=eq.1" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"source\": \"github-actions\"}"
-
-      - name: Lecture de vérification
+            -d "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"source\": \"github-actions\"}"
+      
+      - name: Vérification (optionnel)
         run: |
-          curl -X GET "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/heartbeat?select=id,timestamp,source&limit=5&order=timestamp.desc" \
+          curl -X GET "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/heartbeat?select=*" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
