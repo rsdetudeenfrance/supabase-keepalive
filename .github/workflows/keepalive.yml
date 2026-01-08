@@ -2,10 +2,7 @@ name: Keep Supabase Active
 
 on:
   schedule:
-    # Tous les 3 jours à 10h00 UTC (00h00 Paris)
     - cron: '0 23 */3 * *'
-  
-  # Permet aussi de lancer manuellement
   workflow_dispatch:
 
 jobs:
@@ -13,12 +10,32 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Appeler l'endpoint Bubble
+      - name: Ping Supabase (UPSERT)
         run: |
-          curl -X POST "https://rsdcampusfrance.bubbleapps.io/version-test/api/1.1/wf/keepalive"
-      
-      - name: Requête directe Supabase (backup)
-        run: |
-          curl -X GET "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/comments?select=id&limit=1" \
+          curl -X PATCH "https://bdblrcbyobsgfnlkguzj.supabase.co/rest/v1/heartbeat?id=eq.1" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"source\": \"github-actions\"}"
+```
+
+### 3️⃣ Tester immédiatement
+
+Dans GitHub → **Actions** → Sélectionnez "Keep Supabase Active" → **Run workflow**
+
+Vérifiez que ça fonctionne ✅
+
+### 4️⃣ Vérifier dans Supabase
+
+Retournez dans Supabase → **Table Editor** → Table `heartbeat`
+
+Vous devriez voir **1 seule ligne** avec le timestamp mis à jour !
+
+---
+
+## ⚠️ IMPORTANT
+
+Si vous **ne créez pas la table d'abord**, le workflow va échouer avec une erreur genre :
+```
+relation "public.heartbeat" does not exist
